@@ -32,3 +32,5 @@ Posterior Probability (posterior method with "HMM" model): Similar to the simpli
 ![image](https://media.github.iu.edu/user/24716/files/94faaf4e-f710-443b-abc6-66c4f5ce07e0)
 
 ### Challenges faced
+
+## Part2 Reading text in an image
