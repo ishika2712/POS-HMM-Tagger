@@ -32,6 +32,7 @@ Posterior Probability (posterior method with "HMM" model): Similar to the simpli
 ![image](https://media.github.iu.edu/user/24716/files/94faaf4e-f710-443b-abc6-66c4f5ce07e0)
 
 ### Challenges faced
+Developing the Viterbi algorithm for HMM involved handling multiple probabilities and transitions. Understanding the algorithm's complexity and ensuring its correct implementation was challenging. Further, it was challenging to optimize the code to ensure that it is efficient and runs within the given time limit.
 
 ## Part2 Reading text in an image
 
