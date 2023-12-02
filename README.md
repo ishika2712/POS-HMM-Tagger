@@ -79,7 +79,9 @@ It selects the most likely characters for each test character based on these pro
 
 ### Assumptions and challenges faced
 No Text Layout Analysis: It does not perform text layout analysis to identify words, paragraphs, or other text structures. It treats the entire image as a sequence of characters.
+
 Simplistic Hidden Markov Model (HMM): The HMM model used in the code is relatively simplistic and does not account for more complex patterns or higher-order dependencies often found in text.
+
 Challenges were faced while formulating logic for the HMM algorithm as we have used dynamic programming approach which gave a lot of errors in the beginning.
 
 ## Contribution and work distribution of group members
