@@ -87,70 +87,31 @@ def letter_comparison(test_letter, train_letters):
 
 def hidden_markov_model(test_letters, train_letters, transition_probabilities):
     result = ['0'] * len(test_letters)
-    A2D = [[(0, '') for _ in range(len(test_letters))] for _ in range(len(TRAIN_LETTERS))]
+    probability_matrix = [[0 for _ in range(len(test_letters))] for _ in range(len(TRAIN_LETTERS))]
 
-    letter_1 = letter_comparison(test_letters[0], train_letters)
+    # Initialize the first column of the matrix
     for r in range(len(TRAIN_LETTERS)):
-        if TRAIN_LETTERS[r] in char_first_occurrences and TRAIN_LETTERS[r] in letter_1 and letter_1[TRAIN_LETTERS[r]] != 0:
-            A2D[r][0] = (-math.log10(letter_1[TRAIN_LETTERS[r]]), 'q1')
+        if TRAIN_LETTERS[r] in char_first_occurrences:
+            letter_result = letter_comparison(test_letters[0], train_letters, 0)
+            if TRAIN_LETTERS[r] in letter_result and letter_result[TRAIN_LETTERS[r]] != 0:
+                probability_matrix[r][0] = -math.log10(letter_result[TRAIN_LETTERS[r]])
+
+    # Fill the rest of the matrix using dynamic programming
+    for c in range(1, len(test_letters)):
+        letter_result = letter_comparison(test_letters[c], train_letters, 0)
+
+        for r in range(len(TRAIN_LETTERS)):
+            if TRAIN_LETTERS[r] in letter_result:
+                min_cost = min(probability_matrix[i][c - 1] - math.log10(transition_probabilities[TRAIN_LETTERS[i] + "#" + TRAIN_LETTERS[r]]) - 10 * math.log10(letter_result[TRAIN_LETTERS[r]])
+                               for i in range(len(TRAIN_LETTERS)))
+
+                probability_matrix[r][c] = min_cost
+
+    # Backtrack to find the optimal path
+    result[0] = TRAIN_LETTERS[probability_matrix.index(min(probability_matrix[i][0] for i in range(len(TRAIN_LETTERS))))]
 
     for c in range(1, len(test_letters)):
-        letter_result = letter_comparison(test_letters[c], train_letters)
-        if ' ' in letter_result:
-            result[c] = " "
-
-        for key in letter_result:
-            string = {
-                TRAIN_LETTERS[r]: 0.1 * A2D[r][c - 1][0] - math.log10(transition_probabilities[f"{TRAIN_LETTERS[r]}#{key}"]) - 10 * math.log10(letter_result[key])
-                for r in range(len(TRAIN_LETTERS))
-                if f"{TRAIN_LETTERS[r]}#{key}" in transition_probabilities and key in letter_result
-            }
-
-            max_key = max(string.items(), key=operator.itemgetter(1))[0]
-            if max_key:
-                A2D[TRAIN_LETTERS.index(key)][c] = (string[max_key], max_key)
-
-    max_value = math.pow(9, 99)
-    for r in range(len(TRAIN_LETTERS)):
-        if max_value > A2D[r][0][0] and A2D[r][0][0] != 0:
-            max_value = A2D[r][0][0]
-            result[0] = TRAIN_LETTERS[r]
-
-    for c in range(1, len(test_letters)):
-        min_value = math.pow(9, 96)
-        for r in range(len(TRAIN_LETTERS) - 1):
-            if A2D[r][c][0] != 0 and A2D[r][c][0] < min_value and result[c] != ' ':
-                min_value = A2D[r][c][0]
-                result[c] = TRAIN_LETTERS[r]
-
-    i = 1
-    while i < len(test_letters):
-        min_value = math.pow(9, 96)
-        for r in range(len(TRAIN_LETTERS) - 1):
-            if A2D[r][i][0] != 0 and A2D[r][i][0] < min_value and result[i] != ' ':
-                min_value = A2D[r][i][0]
-                result[i] = TRAIN_LETTERS[r]
-        i += 1
-
-    max_value = math.pow(9, 99)
-    for r in range(len(TRAIN_LETTERS)):
-        if max_value > A2D[r][0][0] and A2D[r][0][0] != 0:
-            max_value = A2D[r][0][0]
-            result[0] = TRAIN_LETTERS[r]
-
-    c = len(test_letters) - 2
-    while c > 0:
-        large_str = ''
-        min_value = math.pow(10, 100)
-        for row in range(len(TRAIN_LETTERS)):
-            for r in range(len(TRAIN_LETTERS) - 1):
-                if large_str == '':
-                    if min_value > A2D[r][c][0] and A2D[r][c][0] != 0:
-                        min_value = A2D[r][c][0]
-                        large_str = TRAIN_LETTERS[r]
-            if f"{TRAIN_LETTERS[row]}#{large_str}" in transition_probabilities:
-                A2D[row][c][0] = A2D[row][c][0] - math.log10(transition_probabilities[f"{TRAIN_LETTERS[row]}#{large_str}"])
-        c -= 1
+        result[c] = TRAIN_LETTERS[probability_matrix[result[c - 1].index(min(probability_matrix[i][c] for i in range(len(TRAIN_LETTERS))))]][c]
 
     return "".join(result)
 
