@@ -2,7 +2,7 @@
 
 ## Part1: Part-of-speech tagging
 
-Problem Formulation:
+### Problem Formulation
 
 1. Simplified Model:
 Description: The goal was to implement part-of-speech tagging using a simplified Bayes net. For this, we had to estimate the most-probable part-of-speech tag for each word in a sentence.
@@ -13,7 +13,7 @@ Description: The goal was to implement the Viterbi algorithm for part-of-speech 
 3. Evaluation:
 Description: The task involved loading training and testing data, deriving parameter estimates from the training corpus, and generating part-of-speech tagging results for each sentence in the testing file. The program was required to assess performance using evaluation metrics, including word and sentence accuracy.
 
-Program Functionality:
+### Program Functionality:
 
 Class Structure (Solver): The code defines a class called Solver that encapsulates the functionality for training the model and predicting part-of-speech tags.
 
