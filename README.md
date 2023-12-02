@@ -26,6 +26,7 @@ Posterior Probability: The posterior method calculates the log posterior probabi
 Hidden Markov Model (HMM):
 HMM Part-of-Speech Tagging (hmm_viterbi method): The hmm_viterbi method implements the Viterbi algorithm for Hidden Markov Models. It uses dynamic programming to find the most likely sequence of part-of-speech tags for a given sentence, considering both emission and transition probabilities.
 
+
 Posterior Probability (posterior method with "HMM" model): Similar to the simplified model, the posterior method calculates the log posterior probability, but this time using the HMM-specific probabilities such as emission, transition, and initial probabilities.
 
 ### Accuracy
@@ -87,3 +88,5 @@ Challenges were faced while formulating logic for the HMM algorithm as we have u
 
 ## Contribution and work distribution of group members
 While we all worked collectively on both the parts aminpri and isthakur had major contribution in working of part 2 and report making while rganesh had more contribution in working on the code of Part1 
+
+![image](https://media.github.iu.edu/user/24842/files/24a2bd44-82c8-409d-b492-44ae0858c829)
