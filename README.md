@@ -2,27 +2,31 @@
 
 ## Part1: Part-of-speech tagging
 
-The problem at hand is Part-of-Speech (POS) tagging, a crucial task in natural language processing. The objective is to assign grammatical categories, such as nouns, verbs, and adjectives, to each word in a given sentence. This is framed as a classification problem where the models predict the most probable POS tag for each word. Two models are implemented in this program:
+Problem Formulation:
 
-Simple Model: Based on word emission probabilities given POS tags.
-Hidden Markov Model (HMM): Integrates both transition probabilities between POS tags and word emission probabilities.
+1. Simplified Model:
+Description: The goal was to implement part-of-speech tagging using a simplified Bayes net. For this, we had to estimate the most-probable part-of-speech tag for each word in a sentence.
 
-### Training (train method):
-Initialization: Sets up parameters and tables for training, including transition probabilities, emission probabilities, and start probabilities.
-Data Processing: Handles variations in word representations (with or without quotes) for accurate training.
-Training Algorithm: Iterates through the provided data to update transition and emission probabilities.
-Normalization: Normalizes probabilities to prevent numerical instability issues.
-Model Choices: Implements both a Simple Model and an HMM.
+2. HMM:
+Description: The goal was to implement the Viterbi algorithm for part-of-speech tagging using a richer Bayes net. This model incorporated dependencies between words, making the tagging process more accurate.
 
-### Prediction (solve method):
-#### Simplified Model (simplified method):
-Predicts POS tags using emission probabilities.
-Selects the most likely tag for each word.
+3. Evaluation:
+Description: The task involved loading training and testing data, deriving parameter estimates from the training corpus, and generating part-of-speech tagging results for each sentence in the testing file. The program was required to assess performance using evaluation metrics, including word and sentence accuracy.
 
-#### HMM Model (hmm_viterbi method):
-Implements the Viterbi algorithm for efficient prediction.
-Considers both transition and emission probabilities.
-Utilizes dynamic programming to find the most likely sequence of POS tags.
+Program Functionality:
+
+Class Structure (Solver): The code defines a class called Solver that encapsulates the functionality for training the model and predicting part-of-speech tags.
+
+Training (train method): The train method initializes and populates various probability tables and matrices based on the provided training data. It calculates transition probabilities, emission probabilities, and other parameters required for both the simplified and HMM models.
+
+Simplified Model:
+Simplified Part-of-Speech Tagging: The simplified method predicts part-of-speech tags for a given sentence using a simplified model. It iterates through each word in the sentence and selects the part-of-speech label with the highest emission probability for that word.
+Posterior Probability: The posterior method calculates the log posterior probability of a sentence given a part-of-speech label sequence. It uses emission probabilities and label probabilities to compute the overall probability.
+
+Hidden Markov Model (HMM):
+HMM Part-of-Speech Tagging (hmm_viterbi method): The hmm_viterbi method implements the Viterbi algorithm for Hidden Markov Models. It uses dynamic programming to find the most likely sequence of part-of-speech tags for a given sentence, considering both emission and transition probabilities.
+
+Posterior Probability (posterior method with "HMM" model): Similar to the simplified model, the posterior method calculates the log posterior probability, but this time using the HMM-specific probabilities such as emission, transition, and initial probabilities.
 
 ### Accuracy
 ![image](https://media.github.iu.edu/user/24716/files/94faaf4e-f710-443b-abc6-66c4f5ce07e0)
