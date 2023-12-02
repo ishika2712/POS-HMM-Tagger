@@ -15,6 +15,7 @@ import numpy as np
 # make sure your code still works with the label.py and pos_scorer.py code
 # that we've supplied.
 #
+#
 class Solver:
     # Calculate the log of the posterior probability of a given sentence
 
