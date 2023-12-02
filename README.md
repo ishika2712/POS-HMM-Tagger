@@ -16,12 +16,10 @@ Model Choices: Implements both a Simple Model and an HMM.
 
 ### Prediction (solve method):
 #### Simplified Model (simplified method):
-
 Predicts POS tags using emission probabilities.
 Selects the most likely tag for each word.
 
-###HMM Model (hmm_viterbi method):
-
+#### HMM Model (hmm_viterbi method):
 Implements the Viterbi algorithm for efficient prediction.
 Considers both transition and emission probabilities.
 Utilizes dynamic programming to find the most likely sequence of POS tags.
