@@ -1,224 +1,231 @@
-#!/usr/bin/python
-#
-# Perform optical character recognition, usage:
-#     python3 ./image2text.py train-image-file.png train-text.txt test-image-file.png
-# 
-# Authors: ISHIKA THAKUR(isthakur) PRITHVI AMIN(aminpri) RADHIKA GANESH(rganesh)
-
-#
-
 from PIL import Image, ImageDraw, ImageFont
 import sys
+import operator
+import math
 
-CHARACTER_WIDTH=14
-CHARACTER_HEIGHT=25
-
+CHARACTER_WIDTH = 14
+CHARACTER_HEIGHT = 25
 
 def load_letters(fname):
     im = Image.open(fname)
     px = im.load()
     (x_size, y_size) = im.size
-    print(im.size)
-    print(int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH)
     result = []
     for x_beg in range(0, int(x_size / CHARACTER_WIDTH) * CHARACTER_WIDTH, CHARACTER_WIDTH):
-        result += [ [ "".join([ '*' if px[x, y] < 1 else ' ' for x in range(x_beg, x_beg+CHARACTER_WIDTH) ]) for y in range(0, CHARACTER_HEIGHT) ], ]
+        result += [ [ "".join([ '*' if px[x, y] < 1 else ' ' for x in range(x_beg, x_beg + CHARACTER_WIDTH) ]) for y in range(0, CHARACTER_HEIGHT) ], ]
     return result
 
-def load_training_letters(fname):
-    TRAIN_LETTERS="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
+def load_training_letters(fname):   
+    TRAIN_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
     letter_images = load_letters(fname)
     return { TRAIN_LETTERS[i]: letter_images[i] for i in range(0, len(TRAIN_LETTERS) ) }
 
-def simple_model(test_letters):
-    # probality of Occurance of any letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"'"
-    #26 uppercase latin characters, the 26 lowercase characters, the 10 digits, spaces, and 7 punctuation symbols, (),.-!?’"
-    predicted_text = ""
-    num_test_letters = len(test_letters)
-    emission_matrix = emissionmatrix(test_letters, num_test_letters)
-    
-    for i in range(num_test_letters):
-        letters_list = emission_matrix[i]
-        predicted_letter = max(letters_list, key = lambda k : k[0])[1]
-        predicted_text += predicted_letter 
-    return predicted_text
+def train_decoder(training_text_path):
+    text_lines = []
+    with open(training_text_path, 'r') as file:
+        for line in file:
+            words = tuple([w for w in line.split()])
+            text_lines += [[words]]
 
-def emissionmatrix(test_letters, num_test_letters):
-    emission_matrix = []
-    for k in range(num_test_letters):
-        row_ele = []
-        prob_li = 1/72 
-        num_pixel = CHARACTER_HEIGHT * CHARACTER_WIDTH
-        test_letter =  test_letters[k] 
-        for train_letter in train_letters:
-            pixel_match_count = pixel_unmatch_count= no_pixel_count = 0
-            letter = train_letters[train_letter] 
-            for i in range(CHARACTER_HEIGHT):
-                for j in range(CHARACTER_WIDTH):
-                    if test_letter[i][j] != letter[i][j]:
-                        pixel_unmatch_count = pixel_unmatch_count + 1
-                    else:    
-                        if test_letter[i][j] == '*':
-                            pixel_match_count = pixel_match_count + 1
-                        else:
-                            no_pixel_count = no_pixel_count + 1
-                            
-            prob_oi_li = (((0.87 *pixel_match_count)+ (0.05 *pixel_unmatch_count)+ (0.15 *no_pixel_count))/num_pixel) 
-            prob_li_oi = prob_oi_li * prob_li
-            row_ele.append((prob_li_oi, train_letter))
-        emission_matrix.append(row_ele)
-    return emission_matrix
+    transition_probabilities = {}
 
-def get_emisision_probability(test_letter):
-    row_ele = []
-    prob_li = 1/72 
-    num_pixel = CHARACTER_HEIGHT * CHARACTER_WIDTH
-    for train_letter in train_letters:
-        pixel_match_count = pixel_unmatch_count= no_pixel_count = 0
-        letter = train_letters[train_letter] 
-        for i in range(CHARACTER_HEIGHT):
-            for j in range(CHARACTER_WIDTH):
-                if test_letter[i][j] != letter[i][j]:
-                        pixel_unmatch_count = pixel_unmatch_count + 1
-                else:    
-                    if test_letter[i][j] == '*':
-                        pixel_match_count = pixel_match_count + 1
-                    else:
-                        no_pixel_count = no_pixel_count + 1
-                        
-        prob_oi_li = (((0.87 *pixel_match_count)+ (0.05 *pixel_unmatch_count)+ (0.15 *no_pixel_count))/num_pixel) * prob_li
-        row_ele.append((prob_oi_li, train_letter))
-    return  row_ele 
-
-def transitionprobmatrix(train_file_data):
-    len_train_file_data = len(train_file_data)
-    letter_count = {}
-    combination_count = {}
-    transition_matrix = []
-    
-    TRAIN_LETTERS1="$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' #"
-    TRAIN_LETTERS2="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
-    
-    for string in train_file_data:
-        # finding the charector count
-        for letter in string:
-            if letter not in letter_count:
-                letter_count[letter] = 1
-            else:
-                letter_count[letter] = letter_count[letter] + 1
-        # finding the occurence of current letter and next letter sequence
-        for letter in range(len(string)):
-            first_letter = string[letter] 
-            if first_letter != "#":
-                secound_letter = string[letter+1]
-                combination = first_letter + secound_letter
-                if combination not in combination_count:
-                            combination_count[combination] = 1
+    for line in text_lines:
+        line_text = (" ").join(line[0])
+        for i in range(0, len(line_text)-1):
+            if (line_text[i] in TRAIN_LETTERS) and (line_text[i+1] in TRAIN_LETTERS):
+                transition_key = line_text[i] + "#" + line_text[i + 1]
+                if transition_key in transition_probabilities:
+                    transition_probabilities[transition_key] = transition_probabilities[transition_key] + 1
                 else:
-                            combination_count[combination] = combination_count[combination] + 1               
+                    transition_probabilities[transition_key] = 1
+
+    character_counts = {}
+    i = 0
+    while i < len(TRAIN_LETTERS):
+        count = 0
+        for transition_key in transition_probabilities.keys():
+            if TRAIN_LETTERS[i] == transition_key.split('#')[0]:
+                count = count + transition_probabilities[transition_key]
+        if count != 0:
+            character_counts[TRAIN_LETTERS[i]] = count
+        i += 1
+
+    for transition_key in transition_probabilities.keys():
+        transition_probabilities[transition_key] = (transition_probabilities[transition_key]) / (float(character_counts[transition_key.split("#")[0]]))
+
+    initial_character_probabilities = {}
+    for transition_key in transition_probabilities.keys():
+        transition_probabilities[transition_key] = transition_probabilities[transition_key] / float(sum(character_counts.values()))
+
+    char_first_occurrences = {}
+    total = sum(character_counts.values())
+    for line in text_lines:
+        for word in line[0]:
+            if word[0] in TRAIN_LETTERS:
+                if word[0] in char_first_occurrences:
+                    char_first_occurrences[word[0]] = char_first_occurrences[word[0]] + 1
+                else:
+                    char_first_occurrences[word[0]] = 1
+
+    total = sum(char_first_occurrences.values())
+    for char in char_first_occurrences.keys():
+        char_first_occurrences[char] = char_first_occurrences[char] / float(total)
+
+    char_count = 0
+    char_occurrence_probs = {}
+    for line in text_lines:
+        line_text = (" ").join(line[0])
+        for char in line_text:
+            if char in TRAIN_LETTERS:
+                char_count = char_count + 1
+                if char in char_occurrence_probs:
+                    char_occurrence_probs[char] = char_occurrence_probs[char] + 1
+                else:
+                    char_occurrence_probs[char] = 1
+
+    for char in char_occurrence_probs.keys():
+        char_occurrence_probs[char] = (char_occurrence_probs[char] + math.pow(10, 10)) / (float(char_count) + math.pow(10, 10))
+
+    total = sum(char_occurrence_probs.values())
+    for char in char_occurrence_probs.keys():
+        char_occurrence_probs[char] = char_occurrence_probs[char] / float(total)
+
+    return [char_occurrence_probs, transition_probabilities, char_first_occurrences]
+
+def letter_comparison(test_letter, train_letters, flag):
+    comparison_result = {}
+    for i in TRAIN_LETTERS:
+        match_count = 0
+        mismatch_count = 1
+        space_count = 0
+        for k in range(0, len(test_letter)):
+            for char_pos in range(0, len(test_letter[k])):
+                if test_letter[k][char_pos] == ' ' and train_letters[i][k][char_pos] == ' ':
+                    space_count = space_count + 1
+                else:
+                    if test_letter[k][char_pos] == train_letters[i][k][char_pos]:
+                        match_count = match_count + 1
+                    else:
+                        mismatch_count = mismatch_count + 1
+            comparison_result[' '] = 0.2
+            if space_count > 340:
+                comparison_result[i] = space_count
             else:
-                pass
-    
-    #building transition matrix
-    for i in range(len(TRAIN_LETTERS1)):
-        transition_row = []
-        train_letter = TRAIN_LETTERS1[i]
-        for j in range(len(TRAIN_LETTERS2)):
-            sequence = TRAIN_LETTERS1[i]+TRAIN_LETTERS2[j]
-            if sequence in combination_count:
-                if train_letter in letter_count:
-                    transition_row.append(combination_count[sequence]/letter_count[train_letter])
+                comparison_result[i] = match_count / float(mismatch_count)
+
+    total = 0
+    for key in comparison_result.keys():
+        if key != " ":
+            total = total + comparison_result[key]
+        else:
+            total = total + 2
+    for key in comparison_result.keys():
+        if key != " ":
+            if comparison_result[key] != 0:
+                comparison_result[key] = comparison_result[key] / float(total)
             else:
-                transition_row.append(0.00000001)
-                  
-        transition_matrix.append(transition_row)
+                comparison_result[key] = 0.00001
 
-    return transition_matrix
+    if flag == 0:
+        return_result = dict(sorted(comparison_result.items(), key=operator.itemgetter(1), reverse=True)[:3])
+    if flag == 1:
+        return_result = comparison_result
 
-def get_vertibiprobability(vertibi_probability, i, probility_matrix):
-    TRAIN_LETTERS1="$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' #"
-    TRAIN_LETTERS2="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
-    
-    for l in range(len(TRAIN_LETTERS1)):
-        for m in range(len(TRAIN_LETTERS2)):
-            transition_probability = transition_matrix[l][m]
-            vertibi_probability.append(probility_matrix[i-1][m]+transition_probability)
-     
-    return vertibi_probability
+    return return_result
 
-# Viterbi Algorithm reference: https://www.cs.utexas.edu/~gdurrett/courses/sp2020/viterbi.pdf
-def hmm_model(test_letters):
-    TRAIN_LETTERS1="$ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' #"
-    TRAIN_LETTERS2="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
-    predicted_text = ""
-    num_train_letters = len(TRAIN_LETTERS2)
-    num_test_letters = len(test_letters)
-#    probility_matrix = [[0]*num_train_letters]*num_test_letters
-    probility_matrix = []
-    path = []
-    emission_matrix = emissionmatrix(test_letters, num_test_letters)
-    
-#    emisision_lst_first_letter = get_emisision_probability(emission_matrix, test_letters[0])
-    #intialization:
-    emission_probality_list = []
+def hmm_finder(test_letters):
+    result = ['0'] * len(test_letters)
+    A2D = []
+    for i in range(0, len(TRAIN_LETTERS)):
+        row = []
+        for j in range(0, len(test_letters)):
+            row.append([0, ''])
+        A2D.append(row)
 
-    for i in range(len(emission_matrix[0])):
-        emission_probality_list.append(emission_matrix[0][i][0])
-        
-    probility_matrix.append(emission_probality_list)
-#    probility_matrix[0] = emission_probality_list
-    
-    for i in range(1, num_test_letters):
-        vertibi_probability_list = []
-        for j in range(num_train_letters):
-            emission_probality = emission_matrix[i][j] 
-            vertibi_probability = []
-            vertibi_probability = get_vertibiprobability(vertibi_probability, i, probility_matrix)
-#            print(vertibi_probability)
-#            print(emission_probality[0])
-            vertibi_probability_val = 0
-            vertibi_probability_val = emission_probality[0] * max(vertibi_probability)
-#            print(vertibi_probability_val)
-            vertibi_probability_list.append(vertibi_probability_val)
-        probility_matrix.append(vertibi_probability_list)
-        
-#    print(probility_matrix)
-#            print("here", vertibi_probability_val)
-            
-    predicted_text = ""
-    for i in range(num_test_letters):
-        current_max = 0
-        max_index = 0
-        for j in range(num_train_letters):
-            if probility_matrix[i][j] > current_max:
-                current_max = probility_matrix[i][j]
-                max_index = j
-        predicted_letter = TRAIN_LETTERS2[max_index]
-        predicted_text += predicted_letter
-        
-    return predicted_text
-        
-#####
-# main program
+    letter_1 = letter_comparison(test_letters[0], train_letters, 0)
+    for r in range(0, len(TRAIN_LETTERS)):
+        if (TRAIN_LETTERS[r]) in char_first_occurrences and (TRAIN_LETTERS[r]) in letter_1 and letter_1[TRAIN_LETTERS[r]] != 0:
+            A2D[r][0] = [- math.log10(letter_1[TRAIN_LETTERS[r]]), 'q1']
+
+    for c in range(1, len(test_letters)):
+        letter_result = letter_comparison(test_letters[c], train_letters, 0)
+        if (' ') in letter_result:
+            result[c] = " "
+
+        for key in letter_result.keys():
+            string = {}
+            for r in range(0, len(TRAIN_LETTERS)):
+                if (TRAIN_LETTERS[r] + "#" + key) in transition_probabilities and key in letter_result:
+                    string[TRAIN_LETTERS[r]] = 0.1 * A2D[r][c - 1][0] - math.log10(transition_probabilities[TRAIN_LETTERS[r] + "#" + key]) - 10 * math.log10(letter_result[key])
+
+            max_key = ''
+            max_value = 0
+            for i in string.keys():
+                if max_value < string[i]:
+                    max_value = string[i]
+                    max_key = i
+            if max_key != '':
+                A2D[TRAIN_LETTERS.index(key)][c] = [string[max_key], max_key]
+
+    max_value = math.pow(9, 99)
+    for r in range(0, len(TRAIN_LETTERS)):
+        if max_value > A2D[r][0][0] and A2D[r][0][0] != 0:
+            max_value = A2D[r][0][0]
+            result[0] = TRAIN_LETTERS[r]
+
+    for c in range(1, len(test_letters)):
+        min_value = math.pow(9, 96)
+        for r in range(0, len(TRAIN_LETTERS)):
+            if A2D[r][c][0] != 0 and A2D[r][c][0] < min_value and r != len(TRAIN_LETTERS) - 1 and result[c] != ' ':
+                min_value = A2D[r][c][0]
+                result[c] = TRAIN_LETTERS[r]
+
+    i = 1
+    while i < len(test_letters):
+        min_value = math.pow(9, 96)
+        for r in range(0, len(TRAIN_LETTERS)):
+            if A2D[r][i][0] != 0 and A2D[r][i][0] < min_value and r != len(TRAIN_LETTERS) - 1 and result[i] != ' ':
+                min_value = A2D[r][i][0]
+                result[i] = TRAIN_LETTERS[r]
+        i += 1
+
+    max_value = math.pow(9, 99)
+    for r in range(0, len(TRAIN_LETTERS)):
+        if max_value > A2D[r][0][0] and A2D[r][0][0] != 0:
+            max_value = A2D[r][0][0]
+            result[0] = TRAIN_LETTERS[r]
+
+    c = len(test_letters) - 2
+    while c > 0:
+        large_str = ''
+        min_value = math.pow(10, 100)
+        for row in range(0, len(TRAIN_LETTERS)):
+            for r in range(0, len(TRAIN_LETTERS)):
+                if large_str == '':
+                    if min_value > A2D[r][c][0] and A2D[r][c][0] != 0:
+                        min_value = A2D[r][c][0]
+                        large_str = TRAIN_LETTERS[r]
+            if (TRAIN_LETTERS[row] + "#" + large_str) in transition_probabilities:
+                A2D[row][c][0] = A2D[row][c][0] - math.log10(transition_probabilities[TRAIN_LETTERS[row] + "#" + large_str])
+        c -= 1
+
+    return "".join(result)
+
+def simple_bayes_net(test_letters, train_letters):
+    result = ''
+    for letter in test_letters:
+        comparison_result = letter_comparison(letter, train_letters, 1)
+        result += max(comparison_result.items(), key=operator.itemgetter(1))[0]
+    return result
+
 if len(sys.argv) != 4:
     raise Exception("Usage: python3 ./image2text.py train-image-file.png train-text.txt test-image-file.png")
 
-(train_img_fname, train_txt_fname, test_img_fname) = sys.argv[1:]
-train_letters = load_training_letters(train_img_fname)
-test_letters = load_letters(test_img_fname)
+(train_img_path, train_txt_path, test_img_path) = sys.argv[1:]
+TRAIN_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789(),.-!?\"' "
+train_letters = load_training_letters(train_img_path)
+test_letters = load_letters(test_img_path)
 
-train_file_data = []
-train_file = open("train-text.txt", "r")
-train_file_line = train_file.readlines()
-for string in train_file_line:
-    string = '$' + string.rstrip() + '#'
-    train_file_data.append(string)
-    
-transition_matrix = transitionprobmatrix(train_file_data)
-
-predicted_text_simple = simple_model(test_letters)
-predicted_text_hmm = hmm_model(test_letters)
-
-# The final two lines of your output should look something like this:
-print("Simple: " + predicted_text_simple)
-print("   HMM: " + predicted_text_hmm)
+[char_first_occurrences, transition_probabilities, char_occurrence_probs] = train_decoder(train_txt_path)
+print("Simple: " + simple_bayes_net(test_letters, train_letters))
+print("HMM: " + hmm_finder(test_letters))
