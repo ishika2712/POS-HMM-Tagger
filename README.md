@@ -5,13 +5,13 @@
 ### Problem Formulation
 
 1. Simplified Model:
-Description: The goal was to implement part-of-speech tagging using a simplified Bayes net. For this, we had to estimate the most-probable part-of-speech tag for each word in a sentence.
+The goal was to implement part-of-speech tagging using a simplified Bayes net. For this, we had to estimate the most-probable part-of-speech tag for each word in a sentence.
 
 2. HMM:
-Description: The goal was to implement the Viterbi algorithm for part-of-speech tagging using a richer Bayes net. This model incorporated dependencies between words, making the tagging process more accurate.
+The goal was to implement the Viterbi algorithm for part-of-speech tagging using a richer Bayes net. This model incorporated dependencies between words, making the tagging process more accurate.
 
 3. Evaluation:
-Description: The task involved loading training and testing data, deriving parameter estimates from the training corpus, and generating part-of-speech tagging results for each sentence in the testing file. The program was required to assess performance using evaluation metrics, including word and sentence accuracy.
+Evaluation involved loading training and testing data, deriving parameter estimates from the training corpus, and generating part-of-speech tagging results for each sentence in the testing file. The program was required to assess performance using evaluation metrics, including word and sentence accuracy.
 
 ### Program Functionality:
 
