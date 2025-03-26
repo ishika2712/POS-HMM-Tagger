@@ -1,4 +1,3 @@
-# aminpri-isthakur-rganesh-a3
 
 ## Part1: Part-of-speech tagging
 
@@ -86,7 +85,5 @@ Simplistic Hidden Markov Model (HMM): The HMM model used in the code is relative
 
 Challenges were faced while formulating logic for the HMM algorithm as we have used dynamic programming approach which gave a lot of errors in the beginning.
 
-## Contribution and work distribution of group members
-While we all worked collectively on both the parts aminpri and isthakur had major contribution in working of part 2 and report making while rganesh had more contribution in working on the code of Part1 
 
 ![image](https://media.github.iu.edu/user/24842/files/24a2bd44-82c8-409d-b492-44ae0858c829)
