@@ -29,7 +29,7 @@ HMM Part-of-Speech Tagging (hmm_viterbi method): The hmm_viterbi method implemen
 Posterior Probability (posterior method with "HMM" model): Similar to the simplified model, the posterior method calculates the log posterior probability, but this time using the HMM-specific probabilities such as emission, transition, and initial probabilities.
 
 ### Accuracy
-![image](https://media.github.iu.edu/user/24716/files/94faaf4e-f710-443b-abc6-66c4f5ce07e0)
+![image](https://media.github.iu.edu/user/24716/files/94faaf4e-f710-443b-abc6-66c4f5ce07e0?token=AAAGCCUN2RO4LO3BL3XGT7TH4OJCO)
 
 ### Challenges faced
 Developing the Viterbi algorithm for HMM involved handling multiple probabilities and transitions. Understanding the algorithm's complexity and ensuring its correct implementation was challenging. Further, it was challenging to optimize the code to ensure that it is efficient and runs within the given time limit.
@@ -86,4 +86,4 @@ Simplistic Hidden Markov Model (HMM): The HMM model used in the code is relative
 Challenges were faced while formulating logic for the HMM algorithm as we have used dynamic programming approach which gave a lot of errors in the beginning.
 
 
-![image](https://media.github.iu.edu/user/24842/files/24a2bd44-82c8-409d-b492-44ae0858c829)
+![image](https://media.github.iu.edu/user/24842/files/24a2bd44-82c8-409d-b492-44ae0858c829?token=AAAGCCWIGMF4MVSH6PNQ2QDH4OJCO)
